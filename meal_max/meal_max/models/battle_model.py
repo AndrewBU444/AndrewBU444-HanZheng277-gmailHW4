@@ -18,11 +18,7 @@ class BattleModel:
 
     def battle(self) -> str:
         """Simulates a battle between two meals.
-
-        Logs the start of the battle, calculates scores for each combatant,
-        and determines the winner based on a normalized delta and a random
-        factor.
-
+        
         Returns:
             str: The name of the winning meal.
 

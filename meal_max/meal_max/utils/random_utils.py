@@ -9,10 +9,6 @@ configure_logger(logger)
 
 def get_random() -> float:
     """Fetches a random decimal number from random.org.
-
-    Sends a request to random.org to obtain a random decimal fraction between 0 and 1. If the request fails
-    or an invalid response is received, an exception is raised.
-
     Returns:
         float: The random decimal number received from random.org.
 
