@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 from meal_max.models.battle_model import BattleModel
 from meal_max.models.kitchen_model import Meal
 
-# Sample Meal data
-def create_sample_meal(name, price, cuisine, difficulty, meal_id):
+def create_sample_meal(name, price, cuisine, difficulty, meal_id): #Making meals for testing
     meal = MagicMock(spec=Meal)
     meal.meal = name
     meal.price = price
