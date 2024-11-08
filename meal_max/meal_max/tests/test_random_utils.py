@@ -32,4 +32,4 @@ def test_get_random_request_failure():  # Test that get_random raises RuntimeErr
         with pytest.raises(RuntimeError, match="Request to random.org failed: Connection error"):
             get_random()
 
-
+            
