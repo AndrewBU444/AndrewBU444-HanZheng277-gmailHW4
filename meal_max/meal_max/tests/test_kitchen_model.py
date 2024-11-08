@@ -31,25 +31,21 @@ def test_create_meal():
     """)
 
     with patch('meal_max.models.kitchen_model.get_db_connection', return_value=conn):
-        
-        # Test valid meal 
+        ### Test valid meal 
         create_meal("Pasta", "Italian", 12.99, "MED")
         cursor = conn.cursor()
         cursor.execute("SELECT meal, cuisine, price, difficulty FROM meals WHERE meal = ?", ("Pasta",))
         row = cursor.fetchone()
         assert row == ("Pasta", "Italian", 12.99, "MED"), "Failed to create meal with correct details"
-
-        # Test invalid price 
+        ### Test invalid price 
         with pytest.raises(ValueError) as excinfo:
             create_meal("Pizza", "Italian", -5.99, "LOW")
         assert str(excinfo.value) == "Invalid price: -5.99. Price must be a positive number."
-
-        # Test invalid difficulty
+        ### Test invalid difficulty
         with pytest.raises(ValueError) as excinfo:
             create_meal("Burger", "American", 8.50, "EASY")
         assert str(excinfo.value) == "Invalid difficulty level: EASY. Must be 'LOW', 'MED', or 'HIGH'."
-
-        # Test duplicate
+        ### Test duplicate
         with pytest.raises(ValueError) as excinfo:
             create_meal("Pasta", "Italian", 10.99, "HIGH")  # Attempting to add the same meal again
         assert str(excinfo.value) == "Meal with name 'Pasta' already exists"
@@ -58,20 +54,25 @@ def test_create_meal():
 
 #def test_clear_meals():
 '''def test_clear_meals():
-    # Set up an in-memory SQLite database
     conn = sqlite3.connect(":memory:")
-    conn.execute()
+    conn.execute("""
+        CREATE TABLE meals (
+            id INTEGER PRIMARY KEY,
+            meal TEXT NOT NULL,
+            cuisine TEXT NOT NULL,
+            price REAL NOT NULL,
+            difficulty TEXT NOT NULL,
+            deleted BOOLEAN NOT NULL DEFAULT FALSE
+        );
+    """)
 
-    # Insert test data to verify the table is cleared
     conn.execute("INSERT INTO meals (meal, cuisine, price, difficulty) VALUES ('Pasta', 'Italian', 12.99, 'MED')")
     conn.commit()
 
-    # Check that data is in the table before clearing
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM meals")
     assert cursor.fetchone()[0] == 1, "Test setup failed: meal record not added."
 
-    # Mock `get_db_connection` and `open` to use the in-memory connection and mock script
     create_table_script = """
         CREATE TABLE meals (
             id 7,
@@ -87,7 +88,6 @@ def test_create_meal():
 
         clear_meals()
 
-        # Verify the table (cleared and recreated)
         cursor.execute("SELECT COUNT(*) FROM meals")
         count = cursor.fetchone()[0]
         assert count == 0, "Meals table should be empty after clearing."
@@ -182,11 +182,11 @@ def test_get_leaderboard():
     
     # test data
     test_data = [
-        (1, "Pizza", "Italian", 8.99, "Easy", 10, 8, False),  
-        (2, "Sushi", "Japanese", 15.00, "Hard", 20, 10, False),
-        (3, "Taco", "Mexican", 5.99, "Medium", 5, 5, False), 
-        (4, "Burger", "American", 7.99, "Easy", 0, 0, False),   
-        (5, "Pasta", "Italian", 12.00, "Medium", 15, 5, True)   
+        (1, "Pizza", "Italian", 8.99, "LOW", 10, 8, False),  
+        (2, "Sushi", "Japanese", 15.00, "HIGH", 20, 10, False),
+        (3, "Taco", "Mexican", 5.99, "MED", 5, 5, False), 
+        (4, "Burger", "American", 7.99, "LOW", 0, 0, False),   
+        (5, "Pasta", "Italian", 12.00, "MED", 15, 5, True)   
     ]
     conn.executemany("INSERT INTO meals (id, meal, cuisine, price, difficulty, battles, wins, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", test_data)
     conn.commit()
