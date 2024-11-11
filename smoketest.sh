@@ -220,4 +220,12 @@ update_meal_stats 1 "loss"
 get_leaderboard "wins"
 delete_meal 1
 
+prep_combatant 1
+prep_combatant 2
+start_battle
+clear_combatants
+
+get_random
+check_random_in_range
+
 echo "MealMax smoke test passed successfully!"
