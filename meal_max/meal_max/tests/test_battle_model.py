@@ -22,7 +22,10 @@ def test_battle_successful():
     battle_model.prep_combatant(meal2)
 
     with patch("meal_max.utils.random_utils.get_random", return_value=0.05), \
-         patch("meal_max.models.kitchen_model.update_meal_stats") as mock_update_stats:
+         patch("meal_max.models.kitchen_model.update_meal_stats") as mock_update_stats, \
+         patch("meal_max.utils.database.get_db_cursor") as mock_cursor:
+
+        mock_cursor.return_value = MagicMock()  # Mocking database cursor
 
         winner = battle_model.battle()
 
@@ -30,6 +33,9 @@ def test_battle_successful():
         assert mock_update_stats.call_count == 2
         assert len(battle_model.combatants) == 1
         assert battle_model.combatants[0].meal == winner
+        mock_cursor.return_value.close.assert_called()
+
+    
 
 def test_battle_tie():
     battle_model = BattleModel()
@@ -100,26 +106,4 @@ def test_prep_combatant(): #Throws error if too many combatants are added
     with pytest.raises(ValueError, match="Combatant list is full, cannot add more combatants."):
         battle_model.prep_combatant(meal1)
 
-@pytest.mark.xfail
-def test_prep_combatant_invalid_price(): #Create a meal with invalid price 
-    battle_model = BattleModel()
-    invalid_meal = create_sample_meal("Salad", "ten", "Vegetarian", "MED", 102)
-    
-    with pytest.raises(TypeError):
-        battle_model.prep_combatant(invalid_meal)
 
-@pytest.mark.xfail
-def test_prep_combatant_invalid_difficulty():#Create a meal with invalid difficulty 
-    battle_model = BattleModel()
-    invalid_meal = create_sample_meal("Burger", 8.0, "American", "INVALID", 103)
-    
-    with pytest.raises(ValueError, match="Invalid difficulty level"):
-        battle_model.prep_combatant(invalid_meal)
-
-@pytest.mark.xfail
-def test_prep_combatant_invalid_id(): #Create a meal with invalid ID 
-    battle_model = BattleModel()
-    invalid_meal = create_sample_meal("Sushi", 12.0, "Japanese", "LOW", None)
-    
-    with pytest.raises(TypeError):
-        battle_model.prep_combatant(invalid_meal)

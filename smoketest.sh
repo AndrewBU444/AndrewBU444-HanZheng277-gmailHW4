@@ -39,7 +39,76 @@ check_db() {
     exit 1
   fi
 }
+#-----------------------------------------------
+# Battle Management
 
+prep_combatant() {
+  meal_id=$1
+  echo "Preparing combatant with meal ID ($meal_id)..."
+  response=$(curl -s -X POST "$BASE_URL/prep-combatant" -H "Content-Type: application/json" \
+    -d "{\"meal_id\":$meal_id}")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Combatant prepared successfully."
+  else
+    echo "Failed to prepare combatant."
+    exit 1
+  fi
+}
+
+start_battle() {
+  echo "Starting a battle..."
+  response=$(curl -s -X POST "$BASE_URL/start-battle")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Battle started successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Battle Result JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to start battle."
+    exit 1
+  fi
+}
+
+clear_combatants() {
+  echo "Clearing combatants list..."
+  response=$(curl -s -X POST "$BASE_URL/clear-combatants")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Combatants cleared successfully."
+  else
+    echo "Failed to clear combatants."
+    exit 1
+  fi
+}
+
+# Random Utils Management
+
+get_random() {
+  echo "Requesting random number..."
+  response=$(curl -s -X GET "$BASE_URL/get-random")
+  if echo "$response" | grep -q '"status": "success"'; then
+    echo "Random number retrieved successfully."
+    if [ "$ECHO_JSON" = true ]; then
+      echo "Random Number JSON:"
+      echo "$response" | jq .
+    fi
+  else
+    echo "Failed to retrieve random number."
+    exit 1
+  fi
+}
+
+check_random_in_range() {
+  random_value=$(curl -s -X GET "$BASE_URL/get-random" | jq -r '.random_value')
+  echo "Testing if random value is within range [0, 1]..."
+  if (( $(echo "$random_value >= 0" | bc -l) )) && (( $(echo "$random_value <= 1" | bc -l) )); then
+    echo "Random value is within expected range: $random_value"
+  else
+    echo "Random value is out of range: $random_value"
+    exit 1
+  fi
+}
+#-------------------------------------------------------
 # Meal Management
 
 create_meal() {
