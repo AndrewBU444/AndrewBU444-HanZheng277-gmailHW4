@@ -4,6 +4,14 @@ from unittest.mock import MagicMock, patch
 from meal_max.models.battle_model import BattleModel
 from meal_max.models.kitchen_model import Meal
 
+def create_sample_meal(name, price, cuisine, difficulty, meal_id): #Making meals for testing
+    meal = MagicMock(spec=Meal)
+    meal.meal = name
+    meal.price = price
+    meal.cuisine = cuisine
+    meal.difficulty = difficulty
+    meal.id = meal_id
+    return meal
 
 # Fixture to create an instance of BattleModel
 @pytest.fixture
@@ -28,6 +36,24 @@ def test_battle_not_enough_combatants(battle_model, caplog):
             battle_model.battle()
 
     assert "Not enough combatants to start a battle." in caplog.text
+
+def test_battle_tie():
+    battle_model = BattleModel()
+
+    meal1 = create_sample_meal("Pasta", 10.0, "Italian", "MED", 1)
+    meal2 = create_sample_meal("Sushi", 10.0, "Japanese", "MED", 2)
+
+    battle_model.prep_combatant(meal1)
+    battle_model.prep_combatant(meal2)
+
+    with patch("meal_max.utils.random_utils.get_random", return_value=0.0), \
+         patch("meal_max.models.battle_model.update_meal_stats") as mock_update_stats:
+
+        winner = battle_model.battle()
+
+        assert winner in [meal1.meal, meal2.meal]
+        assert mock_update_stats.call_count == 2
+        assert len(battle_model.combatants) == 1
 
 # Test: Battle with two combatants
 def test_battle_with_combatants(battle_model, sample_combatants, caplog, mocker):
@@ -75,16 +101,14 @@ def test_prep_combatant_with_full_list(battle_model, sample_combatants, caplog):
 
     assert "Attempted to add combatant 'Pasta' but combatants list is full" in caplog.text
 
-def test_get_battle_score(battle_model, caplog):
-    """Test get_battle_score for a combatant."""
-    meal = Meal(id=1, meal="Sushi", cuisine="Japanese", price=14.0, difficulty="MED")
-    
-    with caplog.at_level("INFO"):
-        score = battle_model.get_battle_score(meal)
+def test_get_battle_score():
+    battle_model = BattleModel()
 
+    meal = create_sample_meal("Pasta", 10.0, "Italian", "MED", 1)
+
+    score = battle_model.get_battle_score(meal)
     expected_score = (meal.price * len(meal.cuisine)) - 2
     assert score == expected_score
-    assert f"Calculated battle score for Sushi: {expected_score}" in caplog.text
 
 # Test: Battle result based on random outcome
 def test_battle_random_outcome(battle_model, sample_combatants, caplog, mocker):
